@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="760" viewBox="0 0 1000 760" fill="none">
+<defs>
+<linearGradient id="sky" x1="500" y1="0" x2="500" y2="760" gradientUnits="userSpaceOnUse"><stop stop-color="#D2DDD7"/><stop offset=".53" stop-color="#E9E1CD"/><stop offset="1" stop-color="#B8C2A3"/></linearGradient>
+<linearGradient id="field" x1="510" y1="398" x2="510" y2="760" gradientUnits="userSpaceOnUse"><stop stop-color="#879479"/><stop offset="1" stop-color="#4B6246"/></linearGradient>
+</defs>
+<path fill="url(#sky)" d="M0 0h1000v760H0z"/>
+<circle cx="796" cy="177" r="73" fill="#F0D8A7" fill-opacity=".7"/>
+<path d="M0 357c124-70 258-51 390 4 122 51 242 38 364-5 85-30 166-32 246 5v399H0V357Z" fill="#AEB99C"/>
+<path d="M0 450c131-60 261-36 389 7 136 46 237 43 381-10 80-30 158-28 230 7v306H0V450Z" fill="url(#field)"/>
+<path d="M0 615c160-53 260-36 390 12 111 42 227 41 352 0s180-39 258-9v142H0V615Z" fill="#435940"/>
+<ellipse cx="523" cy="651" rx="240" ry="22" fill="#334633" fill-opacity=".24"/>
+<path d="M288 450c8-47 50-78 102-78h220c48 0 82 32 88 78l13 96h-42v94h-45v-93H381v92h-45v-92h-43l-13-97Z" fill="#F1E9DA"/>
+<path d="M330 432c-6 20 8 31 29 30 21-1 35-11 32-26-2-14-20-21-39-17-12 2-19 7-22 13Zm123 62c-4 23 12 36 38 33 23-3 37-18 32-34-5-16-25-22-44-15-15 5-24 9-26 16Zm129-47c-6 20 6 32 28 29 19-2 30-14 26-27-4-14-19-20-34-14-11 4-18 7-20 12Z" fill="#817261"/>
+<path d="M682 429c17-17 46-24 78-14 32 10 48 36 41 66l-12 49c-6 23-25 36-49 37l-39 1c-24 0-41-14-47-34l-13-49c-7-24 10-45 41-56Z" fill="#EFE6D6"/>
+<path d="M687 408c-17-17-35-22-48-15l-16 20 28 8 26-4 10-9Zm68 4c18-19 43-25 61-16l19 20-28 7-29-7-23-4Z" fill="#EFE6D6"/>
+<path d="M686 466c7-6 15-6 22 1m27 0c7-5 16-4 21 2" stroke="#4E493F" stroke-width="7" stroke-linecap="round"/>
+<ellipse cx="722" cy="518" rx="28" ry="15" fill="#A9907C"/>
+<path d="M708 518h1m26 1h1" stroke="#42352E" stroke-width="5" stroke-linecap="round"/>
+<path d="M683 485c-15 14-22 32-18 50" stroke="#6D6859" stroke-width="11" stroke-linecap="round"/>
+<path d="M260 632c26-20 43-20 59-2m527-4c25-25 48-25 68-1" stroke="#D0BC94" stroke-opacity=".65" stroke-width="5" stroke-linecap="round"/>
+<path d="M154 266c38-39 92-50 139-24m427 6c38-38 87-48 131-25" stroke="#F8F4EB" stroke-opacity=".5" stroke-width="5" stroke-linecap="round"/>
+</svg>
