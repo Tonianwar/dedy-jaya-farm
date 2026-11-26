@@ -27,13 +27,43 @@
             <span class="result-count">{{ $cows->total() }} ekor tersedia</span>
         </div>
 
-        <form class="search-form" method="GET" action="{{ route('catalog') }}">
-            <label class="sr-only" for="catalog-search">Cari sapi</label>
-            <input id="catalog-search" type="search" name="q" value="{{ $search }}" placeholder="Cari nama, nomor tag, atau ras sapi">
-            <button class="button button-dark" type="submit">Cari sapi</button>
-            @if ($search)
-                <a class="text-link" href="{{ route('catalog') }}">Hapus pencarian</a>
-            @endif
+        <form class="catalog-filter-form" method="GET" action="{{ route('catalog') }}" data-responsive-page-size>
+            <input type="hidden" name="per_page" value="{{ $perPage }}">
+            <div class="catalog-filters-grid">
+                <label for="catalog-search">Cari sapi
+                    <input id="catalog-search" type="search" name="q" value="{{ $search }}" placeholder="Nama, nomor tag, atau ras">
+                </label>
+                <label for="catalog-breed">Jenis sapi
+                    <select id="catalog-breed" name="breed">
+                        <option value="">Semua jenis</option>
+                        @foreach ($breeds as $availableBreed)
+                            <option value="{{ $availableBreed }}" @selected($breed === $availableBreed)>{{ $availableBreed }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <fieldset class="weight-range">
+                    <legend>Berat badan (kg)</legend>
+                    <div>
+                        <label class="sr-only" for="weight-min">Berat minimum (kg)</label>
+                        <input id="weight-min" type="number" name="weight_min" min="0" max="99999" step="0.1" value="{{ $weightMin }}" placeholder="Minimum">
+                        <label class="sr-only" for="weight-max">Berat maksimum (kg)</label>
+                        <input id="weight-max" type="number" name="weight_max" min="0" max="99999" step="0.1" value="{{ $weightMax }}" placeholder="Maksimum">
+                    </div>
+                </fieldset>
+                <label for="catalog-price-sort">Urutkan harga
+                    <select id="catalog-price-sort" name="price_sort">
+                        <option value="newest" @selected($priceSort === 'newest')>Terbaru</option>
+                        <option value="price_asc" @selected($priceSort === 'price_asc')>Termurah</option>
+                        <option value="price_desc" @selected($priceSort === 'price_desc')>Termahal</option>
+                    </select>
+                </label>
+            </div>
+            <div class="catalog-filter-actions">
+                <button class="button button-dark" type="submit">Terapkan filter</button>
+                @if ($hasFilters)
+                    <a class="text-link" href="{{ route('catalog') }}">Hapus filter</a>
+                @endif
+            </div>
         </form>
 
         @if ($cows->isNotEmpty())
@@ -64,12 +94,13 @@
                 @endforeach
             </div>
             <div class="pagination-wrap">{{ $cows->links() }}</div>
+            <p class="pagination-summary">Menampilkan {{ $cows->firstItem() }}–{{ $cows->lastItem() }} dari {{ $cows->total() }} sapi tersedia</p>
         @else
             <div class="empty-state">
                 <span class="empty-icon">✳</span>
-                <h3>{{ $search ? 'Sapi tidak ditemukan' : 'Belum ada sapi di katalog' }}</h3>
-                <p>{{ $search ? 'Coba kata kunci lain atau lihat semua sapi yang tersedia.' : 'Silakan kembali lagi nanti untuk melihat sapi yang tersedia.' }}</p>
-                @if ($search)
+                <h3>{{ $hasFilters ? 'Sapi tidak ditemukan' : 'Belum ada sapi di katalog' }}</h3>
+                <p>{{ $hasFilters ? 'Coba ubah kata kunci atau rentang filter yang dipilih.' : 'Silakan kembali lagi nanti untuk melihat sapi yang tersedia.' }}</p>
+                @if ($hasFilters)
                     <a class="button button-outline" href="{{ route('catalog') }}">Lihat semua sapi</a>
                 @endif
             </div>

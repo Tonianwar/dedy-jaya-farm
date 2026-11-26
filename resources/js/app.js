@@ -1,5 +1,28 @@
 document.documentElement.classList.add('js-enabled');
 
+const responsivePageSizeForm = document.querySelector('[data-responsive-page-size]');
+
+if (responsivePageSizeForm) {
+    const pageSizeInput = responsivePageSizeForm.querySelector('input[name="per_page"]');
+    const mobileBreakpoint = window.matchMedia('(max-width: 650px)');
+
+    const syncPageSize = () => {
+        const pageSize = mobileBreakpoint.matches ? '6' : '9';
+
+        if (pageSizeInput.value === pageSize) {
+            return;
+        }
+
+        const url = new URL(window.location.href);
+        url.searchParams.set('per_page', pageSize);
+        url.searchParams.delete('page');
+        window.location.replace(url);
+    };
+
+    syncPageSize();
+    mobileBreakpoint.addEventListener('change', syncPageSize);
+}
+
 const revealElements = document.querySelectorAll('[data-reveal]');
 
 if ('IntersectionObserver' in window) {

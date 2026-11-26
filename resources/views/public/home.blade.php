@@ -3,40 +3,35 @@
 @section('title', 'Peternakan Sapi Banyumas')
 
 @section('content')
-    <section class="home-hero">
-        <div class="hero-landscape" data-parallax style="background-image: url('{{ asset('images/cattle/pasture-01.svg') }}')"></div>
-        <div class="hero-grain" aria-hidden="true"></div>
-        <div class="hero-glass" data-reveal>
-            <p class="eyebrow">{{ $heroEyebrow }}</p>
-            <h1>{{ $heroTitle }}</h1>
-            <p class="hero-description">{{ $heroDescription }}</p>
-            <div class="hero-actions">
-                <a class="button button-light" href="{{ route('catalog') }}">Jelajahi sapi <span aria-hidden="true">↗</span></a>
-                <a class="hero-secondary-link" href="#tentang">Tentang peternakan <span aria-hidden="true">↓</span></a>
+    @if ($showHomeHero)
+        <section class="home-hero">
+            <div class="hero-landscape" data-parallax style="background-image: url('{{ asset('images/cattle/pasture-01.svg') }}')"></div>
+            <div class="hero-grain" aria-hidden="true"></div>
+            <div class="hero-glass" data-reveal>
+                <p class="eyebrow">{{ $heroEyebrow }}</p>
+                <h1>{{ $heroTitle }}</h1>
+                <p class="hero-description">{{ $heroDescription }}</p>
+                <div class="hero-actions">
+                    <a class="button button-light" href="{{ route('catalog') }}">Jelajahi sapi <span aria-hidden="true">↗</span></a>
+                    <a class="hero-secondary-link" href="{{ route('catalog') }}">Lihat katalog <span aria-hidden="true">↓</span></a>
+                </div>
             </div>
-        </div>
-        <div class="hero-caption"><span>01 — 03</span><span>TERNAK TERPILIH · BANYUMAS</span></div>
-        <div class="hero-orbit" aria-hidden="true"><span>FARM · FAMILY · FUTURE</span><i>✳</i><span>TRACEABILITY SINCE 2026</span></div>
-    </section>
+            <div class="hero-caption"><span>01 — 03</span><span>TERNAK TERPILIH · BANYUMAS</span></div>
+            <div class="hero-orbit" aria-hidden="true"><span>FARM · FAMILY · FUTURE</span><i>✳</i><span>TRACEABILITY SINCE 2026</span></div>
+        </section>
+    @endif
 
-    <section class="home-intro" id="tentang" data-reveal>
-        <div class="intro-label"><span class="intro-dot"></span><span>TENTANG KAMI</span></div>
-        <div class="intro-copy">
-            <h2>{{ $aboutTitle }}</h2>
-            <p>{{ $aboutDescription }}</p>
-            <a class="text-link intro-link" href="#kontak">Kenali lebih dekat <span aria-hidden="true">↗</span></a>
-        </div>
-        <div class="intro-mark" aria-hidden="true">DJ<span>FARM<br>EST. 2026</span></div>
-    </section>
+    @if ($showHomeTraceability)
+        <section class="traceability-strip" data-reveal>
+            <div class="traceability-count"><strong>{{ str_pad((string) $availableCount, 2, '0', STR_PAD_LEFT) }}</strong><span>ekor tersedia</span></div>
+            <div class="traceability-divider"></div>
+            <div class="traceability-copy"><span>SETIAP TERNAK PUNYA CERITA</span><p>Satu identitas. Catatan yang jelas. Dirawat dengan perhatian.</p></div>
+            <a href="{{ route('catalog') }}">Lihat katalog <span aria-hidden="true">↗</span></a>
+        </section>
+    @endif
 
-    <section class="traceability-strip" data-reveal>
-        <div class="traceability-count"><strong>{{ str_pad((string) $availableCount, 2, '0', STR_PAD_LEFT) }}</strong><span>ekor tersedia</span></div>
-        <div class="traceability-divider"></div>
-        <div class="traceability-copy"><span>SETIAP TERNAK PUNYA CERITA</span><p>Satu identitas. Catatan yang jelas. Dirawat dengan perhatian.</p></div>
-        <a href="{{ route('catalog') }}">Lihat katalog <span aria-hidden="true">↗</span></a>
-    </section>
-
-    <section class="featured-section" id="pilihan">
+    @if ($showHomeFeatured)
+        <section class="featured-section" id="pilihan">
         <div class="section-heading" data-reveal>
             <div><p class="eyebrow eyebrow-green">KATALOG PILIHAN</p><h2>Kenali sebelum memilih.</h2><p class="section-description">Lihat profil, bobot, dan perjalanan setiap individu ternak.</p></div>
             <a class="button button-outline" href="{{ route('catalog') }}">Semua sapi <span aria-hidden="true">↗</span></a>
@@ -62,40 +57,46 @@
         @else
             <div class="empty-state"><h3>Katalog sedang diperbarui</h3><p>Hubungi kami untuk informasi ketersediaan sapi.</p></div>
         @endif
-    </section>
+        </section>
+    @endif
 
-    <section class="care-story" data-reveal>
-        <div class="care-photo">
-            <img src="{{ asset('images/cattle/pasture-03.svg') }}" alt="Ilustrasi suasana peternakan sapi di Banyumas" loading="lazy">
-            <span class="care-photo-note">CATATAN PEMELIHARAAN · DEDY JAYA FARM</span>
-        </div>
-        <div class="care-story-copy">
-            <p class="eyebrow eyebrow-green">DIRAWAT DENGAN KONSISTEN</p>
-            <h2>Perjalanan setiap sapi, tercatat.</h2>
-            <p>Identitas digital membantu kami menghubungkan setiap ternak dengan catatan pertumbuhan, penimbangan, dan perawatan kesehatannya.</p>
-            <div class="care-points">
-                <div><span>01</span><strong>Riwayat bobot</strong><small>Perubahan berat badan dari waktu ke waktu.</small></div>
-                <div><span>02</span><strong>Catatan kesehatan</strong><small>Vaksinasi, perawatan, dan pengobatan.</small></div>
-                <div><span>03</span><strong>Informasi transparan</strong><small>Profil ternak terbuka lewat pemindaian QR.</small></div>
+    @if ($showHomeCareStory)
+        <section class="care-story" data-reveal>
+            <div class="care-photo">
+                <img src="{{ asset('images/cattle/pasture-03.svg') }}" alt="Ilustrasi suasana peternakan sapi di Banyumas" loading="lazy">
+                <span class="care-photo-note">CATATAN PEMELIHARAAN · DEDY JAYA FARM</span>
             </div>
-        </div>
-    </section>
+            <div class="care-story-copy">
+                <p class="eyebrow eyebrow-green">DIRAWAT DENGAN KONSISTEN</p>
+                <h2>Perjalanan setiap sapi, tercatat.</h2>
+                <p>Identitas digital membantu kami menghubungkan setiap ternak dengan catatan pertumbuhan, penimbangan, dan perawatan kesehatannya.</p>
+                <div class="care-points">
+                    <div><span>01</span><strong>Riwayat bobot</strong><small>Perubahan berat badan dari waktu ke waktu.</small></div>
+                    <div><span>02</span><strong>Catatan kesehatan</strong><small>Vaksinasi, perawatan, dan pengobatan.</small></div>
+                    <div><span>03</span><strong>Informasi transparan</strong><small>Profil ternak terbuka lewat pemindaian QR.</small></div>
+                </div>
+            </div>
+        </section>
+    @endif
 
-    <section class="contact-panel" id="kontak" data-reveal>
-        <div class="contact-heading">
-            <p class="eyebrow">MARI BERKUNJUNG</p>
-            <h2>Terbuka untuk<br><em>berbincang.</em></h2>
-            <p>Kunjungi peternakan atau hubungi kami untuk informasi sapi yang tersedia.</p>
-            @if ($whatsapp)
-                <a class="button button-light" href="https://wa.me/{{ $whatsapp }}" target="_blank" rel="noopener noreferrer">Hubungi via WhatsApp <span aria-hidden="true">↗</span></a>
-            @endif
-        </div>
-        <div class="contact-details">
-            <div><span>ALAMAT</span><p>{{ $address }}</p></div>
-            @if ($contactPhone)<div><span>TELEPON</span><p><a href="tel:{{ $contactPhone }}">{{ $contactPhone }}</a></p></div>@endif
-            @if ($contactEmail)<div><span>EMAIL</span><p><a href="mailto:{{ $contactEmail }}">{{ $contactEmail }}</a></p></div>@endif
-            @if ($openingHours)<div><span>JAM KUNJUNGAN</span><p>{{ $openingHours }}</p></div>@endif
-        </div>
-        <div class="contact-ornament" aria-hidden="true">✳</div>
-    </section>
+    @if ($showHomeContact)
+        <section class="contact-panel" id="kontak" data-reveal>
+            <div class="contact-heading">
+                <p class="eyebrow">MARI BERKUNJUNG</p>
+                <h2>Terbuka untuk<br><em>berbincang.</em></h2>
+                <p>Kunjungi peternakan atau hubungi kami untuk informasi sapi yang tersedia.</p>
+                @if ($whatsapp)
+                    <a class="button button-light" href="https://wa.me/{{ $whatsapp }}" target="_blank" rel="noopener noreferrer">Hubungi via WhatsApp <span aria-hidden="true">↗</span></a>
+                @endif
+            </div>
+            <div class="contact-details">
+                <div><span>ALAMAT</span><p>{{ $address }}</p><a class="contact-map-link" href="{{ $googleMapsUrl }}" target="_blank" rel="noopener noreferrer">Buka di Google Maps <span aria-hidden="true">↗</span></a></div>
+                @if ($contactPhone)<div><span>TELEPON</span><p><a href="tel:{{ $contactPhone }}">{{ $contactPhone }}</a></p></div>@endif
+                @if ($contactEmail)<div><span>EMAIL</span><p><a href="mailto:{{ $contactEmail }}">{{ $contactEmail }}</a></p></div>@endif
+                @if ($openingHours)<div><span>JAM KUNJUNGAN</span><p>{{ $openingHours }}</p></div>@endif
+                @if ($instagramUrl)<div><span>INSTAGRAM</span><p><a href="{{ $instagramUrl }}" target="_blank" rel="noopener noreferrer">@dedyjayafarm ↗</a></p></div>@endif
+            </div>
+            <div class="contact-ornament" aria-hidden="true">✳</div>
+        </section>
+    @endif
 @endsection

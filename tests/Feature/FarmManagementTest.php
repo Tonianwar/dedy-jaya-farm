@@ -30,6 +30,64 @@ class FarmManagementTest extends TestCase
             ->assertDontSee('Sapi Terjual');
     }
 
+    public function test_public_catalog_uses_database_pagination_and_keeps_filters_on_next_page(): void
+    {
+        foreach (range(1, 25) as $number) {
+            $this->createCow([
+                'name' => 'Katalog '.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+                'breed' => 'Limousin',
+            ]);
+        }
+
+        $this->get(route('catalog', ['breed' => 'Limousin']))
+            ->assertOk()
+            ->assertSee('Katalog 25')
+            ->assertSee('Katalog 17')
+            ->assertDontSee('Katalog 16')
+            ->assertSee('Menampilkan 1–9 dari 25 sapi tersedia')
+            ->assertSee('page=2', false)
+            ->assertSee('page=3', false)
+            ->assertSee('breed=Limousin', false);
+
+        $this->get(route('catalog', ['breed' => 'Limousin', 'page' => 2]))
+            ->assertOk()
+            ->assertSee('Katalog 16')
+            ->assertSee('Katalog 08')
+            ->assertDontSee('Katalog 07')
+            ->assertSee('Menampilkan 10–18 dari 25 sapi tersedia');
+
+        $this->get(route('catalog', ['breed' => 'Limousin', 'per_page' => 6, 'page' => 2]))
+            ->assertOk()
+            ->assertSee('Katalog 19')
+            ->assertSee('Katalog 14')
+            ->assertDontSee('Katalog 13')
+            ->assertSee('Menampilkan 7–12 dari 25 sapi tersedia')
+            ->assertSee('per_page=6', false);
+    }
+
+    public function test_admin_cow_list_paginates_database_results_and_supports_larger_pages(): void
+    {
+        foreach (range(1, 32) as $number) {
+            $this->createCow([
+                'name' => 'Inventaris '.str_pad((string) $number, 2, '0', STR_PAD_LEFT),
+            ]);
+        }
+
+        $this->actingAs(User::factory()->create(['is_admin' => true]))
+            ->get(route('admin.cows.index', ['page' => 2]))
+            ->assertOk()
+            ->assertSee('Inventaris 17')
+            ->assertDontSee('Inventaris 32')
+            ->assertSee('Menampilkan 16–30 dari 32 data sapi')
+            ->assertSee('name="per_page"', false);
+
+        $this->get(route('admin.cows.index', ['page' => 2, 'per_page' => 30]))
+            ->assertOk()
+            ->assertSee('Inventaris 02')
+            ->assertDontSee('Inventaris 32')
+            ->assertSee('Menampilkan 31–32 dari 32 data sapi');
+    }
+
     public function test_public_catalog_uses_the_assigned_qr_short_slug(): void
     {
         $cow = $this->createCow(['name' => 'Sapi QR']);
@@ -38,6 +96,58 @@ class FarmManagementTest extends TestCase
         $this->get(route('catalog'))
             ->assertOk()
             ->assertSee('href="'.route('cows.show', $tag->slug).'"', false);
+    }
+
+    public function test_public_catalog_filters_by_breed_and_current_weight_range(): void
+    {
+        $matchingCow = $this->createCow([
+            'name' => 'Bobot Sesuai',
+            'breed' => 'Limousin',
+            'initial_weight_kg' => 300,
+        ]);
+        $matchingCow->weightLogs()->create([
+            'weighed_at' => '2026-11-10',
+            'weight_kg' => 425.5,
+        ]);
+
+        $outOfRangeCow = $this->createCow([
+            'name' => 'Bobot Di Luar',
+            'breed' => 'Limousin',
+            'initial_weight_kg' => 500,
+        ]);
+        $outOfRangeCow->weightLogs()->create([
+            'weighed_at' => '2026-11-10',
+            'weight_kg' => 260.5,
+        ]);
+
+        $this->createCow(['name' => 'Jenis Berbeda', 'breed' => 'Simental', 'initial_weight_kg' => 425]);
+
+        $this->get(route('catalog', [
+            'breed' => 'Limousin',
+            'weight_min' => 400.5,
+            'weight_max' => 450.5,
+        ]))
+            ->assertOk()
+            ->assertSee('Bobot Sesuai')
+            ->assertDontSee('Bobot Di Luar')
+            ->assertDontSee('Jenis Berbeda')
+            ->assertSee('name="weight_min"', false)
+            ->assertSee('value="400.5"', false);
+    }
+
+    public function test_public_catalog_sorts_cows_by_price_and_places_unpriced_cows_last(): void
+    {
+        $this->createCow(['name' => 'Harga Murah', 'price' => 10000000]);
+        $this->createCow(['name' => 'Harga Mahal', 'price' => 40000000]);
+        $this->createCow(['name' => 'Harga Hubungi', 'price' => null]);
+
+        $this->get(route('catalog', ['price_sort' => 'price_asc']))
+            ->assertOk()
+            ->assertSeeInOrder(['Harga Murah', 'Harga Mahal', 'Harga Hubungi']);
+
+        $this->get(route('catalog', ['price_sort' => 'price_desc']))
+            ->assertOk()
+            ->assertSeeInOrder(['Harga Mahal', 'Harga Murah', 'Harga Hubungi']);
     }
 
     public function test_public_profile_shows_history_and_embeds_valid_youtube_video(): void
@@ -60,7 +170,27 @@ class FarmManagementTest extends TestCase
             ->assertOk()
             ->assertSee('Vaksinasi')
             ->assertSee('415,5 kg')
+            ->assertSee('Grafik riwayat bobot', false)
+            ->assertSee('weight-chart-svg', false)
             ->assertSee('https://www.youtube-nocookie.com/embed/abcdefghijk', false);
+    }
+
+    public function test_public_weight_chart_plots_records_in_chronological_order(): void
+    {
+        $cow = $this->createCow(['name' => 'Sapi Bergrafik']);
+        $cow->weightLogs()->createMany([
+            ['weighed_at' => '2026-10-12', 'weight_kg' => 415.5],
+            ['weighed_at' => '2026-08-12', 'weight_kg' => 390],
+            ['weighed_at' => '2026-09-12', 'weight_kg' => 402.5],
+        ]);
+
+        $this->get(route('cows.show', $cow->slug))
+            ->assertOk()
+            ->assertSeeInOrder([
+                '12/08/2026: 390,0 kg',
+                '12/09/2026: 402,5 kg',
+                '12/10/2026: 415,5 kg',
+            ]);
     }
 
     public function test_public_profile_displays_age_in_readable_years_and_months(): void
@@ -283,18 +413,54 @@ class FarmManagementTest extends TestCase
                 'hero_eyebrow' => 'TERNAK BANYUMAS',
                 'hero_title' => 'Dari kandang kami.',
                 'hero_description' => 'Sapi dengan rekam jejak.',
-                'about_title' => 'Dirawat dengan cermat.',
-                'about_description' => 'Peternakan yang terbuka.',
+                'home_show_hero' => '1',
+                'home_show_traceability' => '0',
+                'home_show_featured' => '1',
+                'home_show_care_story' => '0',
+                'home_show_contact' => '1',
                 'address' => 'Banyumas',
                 'contact_phone' => '08123456789',
                 'contact_email' => 'halo@dedijaya.test',
                 'opening_hours' => 'Senin sampai Sabtu',
+                'instagram_url' => 'https://www.instagram.com/dedyjayafarm/',
+                'google_maps_url' => 'https://www.google.com/maps/place/Dedy+Jaya+Farm/',
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('site_settings', ['key' => 'farm_name', 'value' => 'Dedy Jaya Farm']);
         $this->assertDatabaseHas('site_settings', ['key' => 'public_url', 'value' => 'https://dedijayafarm.id']);
         $this->assertDatabaseHas('site_settings', ['key' => 'whatsapp', 'value' => '6281234567890']);
+        $this->assertDatabaseHas('site_settings', ['key' => 'instagram_url', 'value' => 'https://www.instagram.com/dedyjayafarm/']);
+        $this->assertDatabaseHas('site_settings', ['key' => 'google_maps_url', 'value' => 'https://www.google.com/maps/place/Dedy+Jaya+Farm/']);
+        $this->assertDatabaseHas('site_settings', ['key' => 'home_show_traceability', 'value' => '0']);
+        $this->assertDatabaseHas('site_settings', ['key' => 'home_show_contact', 'value' => '1']);
+    }
+
+    public function test_invalid_social_links_are_rejected(): void
+    {
+        $this->actingAs(User::factory()->create(['is_admin' => true]))
+            ->put(route('admin.settings.update'), [
+                'farm_name' => 'Dedy Jaya Farm',
+                'public_url' => 'https://dedijayafarm.id',
+                'whatsapp' => '',
+                'hero_eyebrow' => 'TERNAK BANYUMAS',
+                'hero_title' => 'Dari kandang kami.',
+                'hero_description' => 'Sapi dengan rekam jejak.',
+                'address' => 'Banyumas',
+                'instagram_url' => 'https://example.com/fake-instagram',
+                'google_maps_url' => 'https://example.com/fake-map',
+            ])
+            ->assertSessionHasErrors(['instagram_url', 'google_maps_url']);
+    }
+
+    public function test_whatsapp_float_is_shown_when_number_is_configured(): void
+    {
+        SiteSetting::setMany(['whatsapp' => '6281234567890']);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('class="whatsapp-float"', false)
+            ->assertSee('https://wa.me/6281234567890', false);
     }
 
     public function test_domain_setting_rejects_paths_and_query_parameters(): void
@@ -401,33 +567,79 @@ class FarmManagementTest extends TestCase
         SiteSetting::setMany([
             'farm_name' => 'Peternakan Uji',
             'hero_title' => 'Sapi pilihan Banyumas',
-            'about_title' => 'Dirawat dengan baik',
-            'about_description' => 'Sejarah dan cerita peternakan kami.',
             'address' => 'Banyumas',
             'contact_phone' => '08123456789',
             'contact_email' => 'halo@dedijaya.test',
             'opening_hours' => 'Senin sampai Sabtu',
             'hero_eyebrow' => 'TERNAK BANYUMAS',
             'hero_description' => 'Profil dan riwayat sapi.',
+            'instagram_url' => 'https://www.instagram.com/dedyjayafarm/',
+            'google_maps_url' => 'https://www.google.com/maps/place/Dedy+Jaya+Farm/',
         ]);
 
         $this->get(route('home'))
             ->assertOk()
             ->assertSee('Peternakan Uji')
             ->assertSee('Sapi pilihan Banyumas')
-            ->assertSee('Dirawat dengan baik')
+            ->assertDontSee('TENTANG KAMI')
+            ->assertDontSee('Tentang kami')
             ->assertSee('halo@dedijaya.test')
+            ->assertSee('dedy-jaya-farm-logo.png')
+            ->assertSee('Peta lokasi Peternakan Uji')
+            ->assertSee('https://www.instagram.com/dedyjayafarm/')
+            ->assertSee('https://www.google.com/maps/place/Dedy+Jaya+Farm/')
             ->assertDontSee(route('admin.login'));
     }
 
-    public function test_sample_farm_seeder_creates_ten_cows_only_once(): void
+    public function test_home_page_sections_can_be_selected_in_admin_settings(): void
+    {
+        SiteSetting::setMany([
+            'home_show_hero' => '0',
+            'home_show_traceability' => '0',
+            'home_show_featured' => '0',
+            'home_show_care_story' => '0',
+            'home_show_contact' => '0',
+        ]);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertDontSee('TENTANG KAMI')
+            ->assertDontSee('TERNAK TERPILIH · BANYUMAS')
+            ->assertDontSee('SETIAP TERNAK PUNYA CERITA')
+            ->assertDontSee('KATALOG PILIHAN')
+            ->assertDontSee('Perjalanan setiap sapi, tercatat.')
+            ->assertDontSee('MARI BERKUNJUNG');
+
+        $this->actingAs(User::factory()->create(['is_admin' => true]))
+            ->get(route('admin.settings.edit'))
+            ->assertOk()
+            ->assertSee('Bagian yang ditampilkan')
+            ->assertSee('name="home_show_hero"', false);
+    }
+
+    public function test_sample_farm_seeder_creates_forty_cows_only_once(): void
     {
         $this->seed(SampleFarmSeeder::class);
         $this->seed(SampleFarmSeeder::class);
 
-        $this->assertSame(10, Cow::query()->count());
-        $this->assertSame(10, LivestockTag::query()->count());
-        $this->assertSame(10, LivestockTagAssignment::query()->whereNull('released_at')->count());
+        $this->assertSame(40, Cow::query()->count());
+        $this->assertSame(40, LivestockTag::query()->count());
+        $this->assertSame(40, LivestockTagAssignment::query()->whereNull('released_at')->count());
+        $this->assertSame(80, WeightLog::query()->count());
+        $this->assertDatabaseHas('cows', ['tag_number' => 'DJF-1011', 'name' => 'Mahesa']);
+        $this->assertDatabaseHas('cows', ['tag_number' => 'DJF-1040', 'name' => 'Cempaka']);
+    }
+
+    public function test_sample_farm_seeder_adds_missing_demo_cows_without_overwriting_existing_cows(): void
+    {
+        $existingCow = $this->createCow(['name' => 'Sapi Milik Peternakan']);
+
+        $this->seed(SampleFarmSeeder::class);
+        $this->seed(SampleFarmSeeder::class);
+
+        $this->assertSame(41, Cow::query()->count());
+        $this->assertSame('Sapi Milik Peternakan', $existingCow->fresh()->name);
+        $this->assertSame(40, LivestockTag::query()->count());
     }
 
     /**

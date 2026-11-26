@@ -15,7 +15,12 @@ class AdminCowController extends Controller
 {
     public function index(Request $request): View
     {
+        $filters = $request->validate([
+            'q' => ['nullable', 'string', 'max:100'],
+            'per_page' => ['nullable', 'integer', 'in:15,30,50'],
+        ]);
         $search = trim((string) $request->query('q', ''));
+        $perPage = (int) ($filters['per_page'] ?? 15);
 
         $cows = Cow::query()
             ->when($search, function ($query, $search) {
@@ -26,10 +31,11 @@ class AdminCowController extends Controller
                 });
             })
             ->latest('created_at')
-            ->paginate(15)
+            ->latest('id')
+            ->paginate($perPage)
             ->withQueryString();
 
-        return view('admin.cows.index', compact('cows', 'search'));
+        return view('admin.cows.index', compact('cows', 'search', 'perPage'));
     }
 
     public function create(): View

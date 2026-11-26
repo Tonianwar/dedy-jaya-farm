@@ -16,11 +16,18 @@ class AdminSettingsController extends Controller
             'farmName' => SiteSetting::get('farm_name', 'Dedy Jaya Farm'),
             'publicUrl' => SiteSetting::get('public_url', config('app.url')),
             'whatsapp' => SiteSetting::get('whatsapp'),
+            'instagramUrl' => SiteSetting::get('instagram_url', 'https://www.instagram.com/dedyjayafarm/'),
+            'googleMapsUrl' => SiteSetting::get('google_maps_url', 'https://www.google.com/maps/place/Dedy+Jaya+Farm/data=!4m2!3m1!1s0x0:0xc51157099675347b?sa=X&ved=1t:2428&ictx=111'),
             'heroEyebrow' => SiteSetting::get('hero_eyebrow', 'PETERNAKAN SAPI · BANYUMAS'),
             'heroTitle' => SiteSetting::get('hero_title', 'Ternak terpilih. Dirawat dengan perhatian.'),
             'heroDescription' => SiteSetting::get('hero_description', 'Kenali sapi pilihan Dedy Jaya Farm melalui profil dan riwayat perawatan yang tercatat.'),
-            'aboutTitle' => SiteSetting::get('about_title', 'Peternakan sapi potong di Banyumas.'),
-            'aboutDescription' => SiteSetting::get('about_description', 'Kami merawat dan memantau sapi secara rutin. Setiap bobot, pemeriksaan, dan perawatan dicatat agar pelanggan mengenal kondisi ternak yang dipilih.'),
+            'homeSections' => [
+                'home_show_hero' => SiteSetting::get('home_show_hero', '1') === '1',
+                'home_show_traceability' => SiteSetting::get('home_show_traceability', '1') === '1',
+                'home_show_featured' => SiteSetting::get('home_show_featured', '1') === '1',
+                'home_show_care_story' => SiteSetting::get('home_show_care_story', '1') === '1',
+                'home_show_contact' => SiteSetting::get('home_show_contact', '1') === '1',
+            ],
             'address' => SiteSetting::get('address', 'Purbadana, Kembaran, Banyumas, Jawa Tengah'),
             'contactPhone' => SiteSetting::get('contact_phone', ''),
             'contactEmail' => SiteSetting::get('contact_email', ''),
@@ -53,11 +60,41 @@ class AdminSettingsController extends Controller
                 },
             ],
             'whatsapp' => ['nullable', 'regex:/^[0-9]{8,15}$/'],
+            'instagram_url' => [
+                'nullable',
+                'url:https',
+                'max:500',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    if ($value !== null && ! in_array(parse_url((string) $value, PHP_URL_HOST), ['instagram.com', 'www.instagram.com'], true)) {
+                        $fail('Masukkan tautan akun Instagram yang valid.');
+                    }
+                },
+            ],
+            'google_maps_url' => [
+                'nullable',
+                'url:https',
+                'max:500',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    $host = $value !== null ? parse_url((string) $value, PHP_URL_HOST) : null;
+                    $path = $value !== null ? parse_url((string) $value, PHP_URL_PATH) : null;
+
+                    if (
+                        ! in_array($host, ['google.com', 'www.google.com', 'maps.google.com'], true)
+                        || ! is_string($path)
+                        || ! str_starts_with($path, '/maps')
+                    ) {
+                        $fail('Masukkan tautan Google Maps yang valid.');
+                    }
+                },
+            ],
             'hero_eyebrow' => ['required', 'string', 'max:100'],
             'hero_title' => ['required', 'string', 'max:150'],
             'hero_description' => ['required', 'string', 'max:500'],
-            'about_title' => ['required', 'string', 'max:150'],
-            'about_description' => ['required', 'string', 'max:2000'],
+            'home_show_hero' => ['sometimes', 'boolean'],
+            'home_show_traceability' => ['sometimes', 'boolean'],
+            'home_show_featured' => ['sometimes', 'boolean'],
+            'home_show_care_story' => ['sometimes', 'boolean'],
+            'home_show_contact' => ['sometimes', 'boolean'],
             'address' => ['required', 'string', 'max:255'],
             'contact_phone' => ['nullable', 'string', 'max:40'],
             'contact_email' => ['nullable', 'email', 'max:150'],
@@ -67,6 +104,18 @@ class AdminSettingsController extends Controller
         ]);
 
         $data['public_url'] = rtrim($data['public_url'], '/');
+        foreach ([
+            'home_show_hero',
+            'home_show_traceability',
+            'home_show_featured',
+            'home_show_care_story',
+            'home_show_contact',
+        ] as $key) {
+            if (array_key_exists($key, $data)) {
+                $data[$key] = $request->boolean($key) ? '1' : '0';
+            }
+        }
+
         SiteSetting::setMany($data);
 
         return back()->with('success', 'Pengaturan peternakan berhasil disimpan.');

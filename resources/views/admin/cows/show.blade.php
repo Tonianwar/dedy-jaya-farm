@@ -76,8 +76,8 @@
             <form method="POST" action="{{ route('admin.cows.weights.store', $cow) }}" enctype="multipart/form-data" class="stack-form compact-form">
                 @csrf
                 <div class="form-grid">
-                    <label>Tanggal <span class="required">*</span><input type="date" name="weighed_at" value="{{ old('weighed_at', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required></label>
-                    <label>Bobot (kg) <span class="required">*</span><input type="number" name="weight_kg" min="1" max="2000" step="0.1" required></label>
+                    <label><span class="label-caption">Tanggal <span class="required">*</span></span><input type="date" name="weighed_at" value="{{ old('weighed_at', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required></label>
+                    <label><span class="label-caption">Bobot (kg) <span class="required">*</span></span><input type="number" name="weight_kg" min="1" max="2000" step="0.1" required></label>
                     <label class="form-span">Catatan<input name="note" maxlength="2000" placeholder="Opsional"></label>
                     <label class="form-span">Foto penimbangan<input type="file" name="photo" accept="image/jpeg,image/png,image/webp"><small>Video tidak diunggah; video perawatan memakai tautan YouTube.</small></label>
                 </div>
@@ -100,8 +100,8 @@
             <form method="POST" action="{{ route('admin.cows.health-records.store', $cow) }}" class="stack-form compact-form">
                 @csrf
                 <div class="form-grid">
-                    <label>Tanggal <span class="required">*</span><input type="date" name="recorded_at" value="{{ old('recorded_at', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required></label>
-                    <label>Kategori <span class="required">*</span>
+                    <label><span class="label-caption">Tanggal <span class="required">*</span></span><input type="date" name="recorded_at" value="{{ old('recorded_at', now()->toDateString()) }}" max="{{ now()->toDateString() }}" required></label>
+                    <label><span class="label-caption">Kategori <span class="required">*</span></span>
                         <select name="category" required>
                             <option value="care">Perawatan</option>
                             <option value="illness">Kesehatan / penyakit</option>
@@ -109,7 +109,7 @@
                             <option value="medication">Pengobatan</option>
                         </select>
                     </label>
-                    <label class="form-span">Judul catatan <span class="required">*</span><input name="title" maxlength="150" required placeholder="Contoh: Vaksinasi PMK"></label>
+                    <label class="form-span"><span class="label-caption">Judul catatan <span class="required">*</span></span><input name="title" maxlength="150" required placeholder="Contoh: Vaksinasi PMK"></label>
                     <label class="form-span">Keterangan<textarea name="description" rows="3" maxlength="3000" placeholder="Catatan tindakan, obat, atau kondisi sapi"></textarea></label>
                     <label class="form-span">Tautan video YouTube<input type="url" name="youtube_url" maxlength="255" placeholder="https://youtu.be/..."><small>Video ditampilkan dengan embed YouTube; unggah video langsung tidak tersedia.</small></label>
                 </div>

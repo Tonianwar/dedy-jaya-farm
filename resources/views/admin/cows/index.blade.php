@@ -9,12 +9,27 @@
     </section>
 
     <section class="admin-panel">
-        <form class="search-form admin-search" method="GET" action="{{ route('admin.cows.index') }}">
+        <form class="search-form admin-search admin-cow-search" method="GET" action="{{ route('admin.cows.index') }}">
             <label class="sr-only" for="admin-search">Cari sapi</label>
             <input id="admin-search" type="search" name="q" value="{{ $search }}" placeholder="Cari nama, nomor tag, atau ras">
-            <button class="button button-dark" type="submit">Cari</button>
-            @if ($search)<a class="text-link" href="{{ route('admin.cows.index') }}">Hapus</a>@endif
+            <label class="admin-page-size" for="admin-per-page">Baris per halaman
+                <select id="admin-per-page" name="per_page">
+                    @foreach ([15, 30, 50] as $pageSize)
+                        <option value="{{ $pageSize }}" @selected($perPage === $pageSize)>{{ $pageSize }}</option>
+                    @endforeach
+                </select>
+            </label>
+            <button class="button button-dark" type="submit">Terapkan</button>
+            @if ($search || $perPage !== 15)<a class="text-link" href="{{ route('admin.cows.index') }}">Reset</a>@endif
         </form>
+
+        <p class="pagination-summary">
+            @if ($cows->total() > 0)
+                Menampilkan {{ $cows->firstItem() }}–{{ $cows->lastItem() }} dari {{ $cows->total() }} data sapi
+            @else
+                Tidak ada data sapi
+            @endif
+        </p>
 
         @if ($cows->isNotEmpty())
             <div class="table-wrap">

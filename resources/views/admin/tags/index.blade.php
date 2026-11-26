@@ -22,7 +22,7 @@
         <form method="POST" action="{{ route('admin.tags.store') }}" class="tag-create-form">
             @csrf
             <label>
-                Kode QR <span class="required">*</span>
+                <span class="label-caption">Kode QR <span class="required">*</span></span>
                 <input name="code" value="{{ old('code') }}" maxlength="40" required placeholder="Contoh: DJF-1001">
                 <small>Kode fisik unik untuk dicetak atau ditempel pada tag.</small>
             </label>
